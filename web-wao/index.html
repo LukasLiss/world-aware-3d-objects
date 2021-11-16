@@ -12,7 +12,51 @@
 
       </div>
       <div id="sidebar">
+        <!--Load section-->
+        <div>
+          <p>Load a GLTF or GLB Model</p>
+          <div>
+            <input type="file" id="fileSelect">
+            <input type="button" id="fileSelectButton" value="Load">
+          </div>
+        </div>
+        <!--Animation section-->
+        <div>
+          <p>Those Animations were found:</p>
+          <div id="animationList">
 
+          </div>
+        </div>
+        <!--Add state section-->
+        <div>
+          <p>Add Stage:</p>
+          <p>(Name & Animation of that State)</p>
+          <input type="text" id="addStateName">
+          <select id="addStateAnim">
+
+          </select>
+          <input type="button" id="addStateBtn" value="Add State">
+        </div>
+        <!--Add transition section-->
+        <div>
+          <p>Add Transition:</p>
+          <p>(Source, event, Target)</p>
+          <select id="addTransitionSource">
+
+          </select>
+          <input type="text" id="addTransitionEvID">
+          <select id="addTransitionTarget">
+
+          </select>
+          <input type="button" id="addTransitionBtn" value="Add Transition">
+        </div>
+        <!--Simulate Events in World-->
+        <div>
+          <p>Simulate Events in the World</p>
+          <input type="text" id="simulateEvName">
+          <input type="button" id="fireEventBtn" value="Fire Event">
+        </div>
+        <!--Visualize automata section-->
       </div>
     </div>
     <script type="module" src="/main.js"></script>

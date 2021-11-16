@@ -7,9 +7,15 @@ import './style.css'
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
+import { WAO } from './wao.js';
 
-//global objects
-let camera, scene, renderer, control;
+// global objects
+let camera, scene, renderer, control, mixer, clock;
+
+// gloabal logic objects
+
+let currentGlftObj;
+let myWAO;
 
 function getTDWidth(){
     return document.getElementById("threeDView").clientWidth;
@@ -30,6 +36,10 @@ function init(){
 		0.1,
 		1000
 	);
+
+  myWAO = null;
+  mixer = null;
+  clock = new THREE.Clock();
 
 	// Init renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -69,19 +79,32 @@ function onWindowResize(){
 }
 
 function animate() {
-    requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 
+  if(mixer){
+    mixer.update(clock.getDelta());
+  }
   control.update();
 	renderer.render(scene, camera);
 };
 
 window.onload = function(){
     window.addEventListener('resize', onWindowResize, false);
+    document.getElementById("addStateBtn").onclick = () => {
+      addStateBtnClick();
+    }
+    document.getElementById("addTransitionBtn").onclick = () =>{
+      addTransitionBtnClick();
+    }
+    document.getElementById("fireEventBtn").onclick = () => {
+      fireEventBtnClick();
+    }
 
     init();
     drawCoordinateSystem();
 
-    loadGLTF("/resources/BrainStem.glb")
+    loadGLTF("/resources/Wolf.glb");
+    //loadGLTF("/resources/BrainStem.glb");
     
     animate();
     console.log("Animation started");
@@ -98,8 +121,9 @@ function loadGLTF(path){
         path,
         // called when the resource is loaded
         function ( gltf ) {
-    
-            scene.add( gltf.scene );
+            setCurrentGlftObj(gltf);
+
+            //scene.add( gltf.scene );
     
             gltf.animations; // Array<THREE.AnimationClip>
             gltf.scene; // THREE.Group
@@ -111,7 +135,7 @@ function loadGLTF(path){
         // called while loading is progressing
         function ( xhr ) {
     
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            //console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
     
         },
         // called when loading has errors
@@ -121,6 +145,106 @@ function loadGLTF(path){
     
         }
     );
+}
+
+function setCurrentGlftObj(glft){
+  //remove old from scene
+
+
+  //add new to scene
+  currentGlftObj = glft;
+  scene.add(glft.scene);
+
+  ///////////////////////
+  // UPDATE VIEW       //
+  ///////////////////////
+
+  //update animations
+  mixer = new THREE.AnimationMixer( glft.scene );
+  //remove
+  const animDiv = document.getElementById("animationList");
+  animDiv.innerHTML = '';
+  //add
+  for(let i = 0; i < glft.animations.length; i++){
+
+    console.log(glft.animations[i]);
+    var b = document.createElement('button');
+    b.setAttribute('class', 'animBtn');  
+    b.textContent = "Play: " + glft.animations[i].name;
+    b.onclick = function(){
+      startAnimation(glft, i);
+      return false;
+    };
+
+    animDiv.appendChild(b);
+  }
+
+  //update select for add state section
+  let selectElem = document.getElementById("addStateAnim");
+  selectElem.innerHTML = '';
+  for(let i = 0; i < glft.animations.length; i++){
+    var opt = document.createElement('option');
+    opt.value = i; //save the index of the animation
+    opt.innerHTML = glft.animations[i].name;
+    selectElem.appendChild(opt);
+  }
+
+  /////////////////////
+
+  // create WAO
+  myWAO = new WAO();
+  myWAO.setMixer(mixer);
+  myWAO.setChangeCallback(waoCahnged);
+
+}
+
+function startAnimation(glft, index){
+  console.log("start anim: " + index);
+  mixer.stopAllAction();
+  const action = mixer.clipAction( glft.animations[index] );
+  action.play();
+}
+
+function addStateBtnClick(){
+  let givenName = document.getElementById("addStateName").value;
+  let givenAnim = currentGlftObj.animations[parseInt(document.getElementById("addStateAnim").value)];
+
+  //console.log("Add State: " + givenName + " / " + givenAnim.name);
+  myWAO.addState(givenName, [givenAnim]);
+}
+
+function addTransitionBtnClick(){
+  let evID = document.getElementById("addTransitionEvID").value;
+  let sourceName = document.getElementById("addTransitionSource").value;
+  let targetName = document.getElementById("addTransitionTarget").value;
+
+  myWAO.addTransition(evID, sourceName, targetName);
+}
+
+function fireEventBtnClick(){
+  let evID = document.getElementById("simulateEvName").value;
+  myWAO.eventNotification(evID);
+}
+
+function waoCahnged(){
+  //update view of add Transition
+  let source = document.getElementById("addTransitionSource");
+  source.innerHTML = '';
+
+  let target = document.getElementById("addTransitionTarget");
+  target.innerHTML = '';
+
+  for(var i = 0; i < myWAO.getStates().length; i++){
+    var opt = document.createElement('option');
+    opt.value = myWAO.getStates()[i].name; //the name is enough since the addTransition function needs that
+    opt.innerHTML = myWAO.getStates()[i].name;
+    source.appendChild(opt);
+
+    var opt2 = document.createElement('option');
+    opt2.value = myWAO.getStates()[i].name; //the name is enough since the addTransition function needs that
+    opt2.innerHTML = myWAO.getStates()[i].name;
+    target.appendChild(opt2);
+  }
 }
 
 ////////////////////////////////////////////////////////////
