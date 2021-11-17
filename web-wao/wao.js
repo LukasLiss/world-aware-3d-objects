@@ -42,6 +42,16 @@ class WAO {
         return this.states;
     }
 
+    getTransitions(){
+        let allTransitions = [];
+        for(var i=0; i < this.states.length; i++){
+            for(var evID in this.states[i].transitionDict){
+                allTransitions.push([this.states[i], evID, this.states[i].transitionDict[evID]]);
+            }
+        }
+        return allTransitions;
+    }
+
     setChangeCallback(callback){
         this.changeCallback = callback;
     }
@@ -109,6 +119,13 @@ class WAO {
             console.log(action);
 
             action.play();
+        }
+
+        if(this.changeCallback != null){
+            this.changeCallback({
+                states: [],
+                transitions: []
+            });
         }
     }
 

@@ -1,4 +1,4 @@
-import './style.css'
+import './style.css';
 
 ////////////////////////////////////////////////////////////
 //                    SETUP FUNCTIONS                     //
@@ -19,7 +19,7 @@ let currentGlftObj;
 let myWAO;
 
 //Dracula graph
-let Graph, Renderer, Layout, graph;
+let Graph, Renderer, Layout, graph, dracSpecialRender;
 
 function getTDWidth(){
     return document.getElementById("threeDView").clientWidth;
@@ -50,6 +50,17 @@ function init(){
   Renderer = Dracula.Renderer.Raphael
   Layout = Dracula.Layout.Spring
   graph = new Graph();
+
+  dracSpecialRender = function(r, n) {
+    var label = r.text(0, 30, n.label).attr({ opacity: 0 })
+    //the Raphael set is obligatory, containing all you want to display
+    var set = r.set()
+      .push(
+        r.rect(-30, -13, 62, 86)
+          .attr({ fill: '#fa8', 'stroke-width': 2, r: 9 })
+      )
+      .push(label)
+  }
 
 	// Init renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -258,7 +269,8 @@ function waoCahnged(updates){
     target.appendChild(opt2);
   }
 
-  drawWAOGraph(updates);
+  //drawWAOGraphUpdate(updates);
+  drawWAOGraph(myWAO);
 }
 
 ////////////////////////////////////////////////////////////
@@ -300,7 +312,7 @@ function drawCoordinateSystem(){
     scene.add(gridHelper);
 }
 
-function drawWAOGraph(updates){
+function drawWAOGraphUpdate(updates){
 
   for(var i = 0; i < updates.states.length; i++){
     graph.addNode(updates.states[i], {label: updates.states[i]});
@@ -308,6 +320,37 @@ function drawWAOGraph(updates){
 
   for(var i = 0; i < updates.transitions.length; i++){
     graph.addEdge(updates.transitions[i][0], updates.transitions[i][2], {directed: true, label: updates.transitions[i][1]});
+  }
+
+  //remove old graph
+  document.getElementById("paper").innerHTML = "";
+
+  //add new graph
+
+  var layoutDracula = new Layout(graph);
+  var rendererDracula = new Renderer('#paper', graph, document.getElementById("paper").clientWidth, document.getElementById("paper").clientHeight - 5);
+  rendererDracula.draw();
+
+}
+
+function drawWAOGraph(wao){
+
+  graph = new Graph();
+
+  console.log("Drawing:");
+  console.log(wao);
+  for(var i = 0; i < wao.states.length; i++){
+    if(wao.states[i].name == wao.currentState.name){
+      console.log("Gleich: " + wao.states[i].name + " and " + wao.currentState.name);
+      graph.addNode(wao.states[i].name, {label: "----> " + wao.states[i].name + " <----"});
+    }else{
+      graph.addNode(wao.states[i].name, {label: wao.states[i].name});
+    }
+  }
+
+  let allTransitions = wao.getTransitions();
+  for(var i = 0; i < allTransitions.length; i++){
+    graph.addEdge(allTransitions[i][0].name, allTransitions[i][2].name, {directed: true, label: allTransitions[i][1]});
   }
 
   //remove old graph
