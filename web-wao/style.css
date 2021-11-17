@@ -30,9 +30,14 @@ canvas {
   height: 100%;
 }
 
+.buffer {
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+
 #sidebar {
   flex-grow: 1;
-  background-color: green;
+  background-color: #586F7C;
   height: 100%;
   display: flex;
   flex-direction: column;
