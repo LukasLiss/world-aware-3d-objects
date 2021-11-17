@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
 import { WAO } from './wao.js';
+import * as Dracula from 'graphdracula';
 
 // global objects
 let camera, scene, renderer, control, mixer, clock;
@@ -16,6 +17,9 @@ let camera, scene, renderer, control, mixer, clock;
 
 let currentGlftObj;
 let myWAO;
+
+//Dracula graph
+let Graph, Renderer, Layout, graph;
 
 function getTDWidth(){
     return document.getElementById("threeDView").clientWidth;
@@ -40,6 +44,12 @@ function init(){
   myWAO = null;
   mixer = null;
   clock = new THREE.Clock();
+
+  //Dracula graph init
+  Graph = Dracula.Graph
+  Renderer = Dracula.Renderer.Raphael
+  Layout = Dracula.Layout.Spring
+  graph = new Graph();
 
 	// Init renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -226,7 +236,9 @@ function fireEventBtnClick(){
   myWAO.eventNotification(evID);
 }
 
-function waoCahnged(){
+function waoCahnged(updates){ 
+  //ubdates is object with .states [str:names] and .transitions [(str:source, str:evID, str:target)]
+
   //update view of add Transition
   let source = document.getElementById("addTransitionSource");
   source.innerHTML = '';
@@ -245,6 +257,8 @@ function waoCahnged(){
     opt2.innerHTML = myWAO.getStates()[i].name;
     target.appendChild(opt2);
   }
+
+  drawWAOGraph(updates);
 }
 
 ////////////////////////////////////////////////////////////
@@ -284,4 +298,25 @@ function drawCoordinateSystem(){
     //Grid
     const gridHelper = new THREE.GridHelper(50, 25);
     scene.add(gridHelper);
+}
+
+function drawWAOGraph(updates){
+
+  for(var i = 0; i < updates.states.length; i++){
+    graph.addNode(updates.states[i], {label: updates.states[i]});
+  }
+
+  for(var i = 0; i < updates.transitions.length; i++){
+    graph.addEdge(updates.transitions[i][0], updates.transitions[i][2], {directed: true, label: updates.transitions[i][1]});
+  }
+
+  //remove old graph
+  document.getElementById("paper").innerHTML = "";
+
+  //add new graph
+
+  var layoutDracula = new Layout(graph);
+  var rendererDracula = new Renderer('#paper', graph, document.getElementById("paper").clientWidth, document.getElementById("paper").clientHeight - 5);
+  rendererDracula.draw();
+
 }

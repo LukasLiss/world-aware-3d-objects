@@ -34,4 +34,12 @@ canvas {
   flex-grow: 1;
   background-color: green;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#paper {
+  width: 100%;
+  flex-grow: 1;
+  background-color: bisque;
 }

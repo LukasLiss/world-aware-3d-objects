@@ -64,7 +64,10 @@ class WAO {
         }
 
         if(this.changeCallback != null){
-            this.changeCallback();
+            this.changeCallback({
+                states: [newState.name],
+                transitions: []
+            });
         }
     }
 
@@ -88,7 +91,10 @@ class WAO {
         source.addTransition(evID, target);
 
         if(this.changeCallback != null){
-            this.changeCallback();
+            this.changeCallback({
+                states: [],
+                transitions: [[sourceName, evID, targetName]]
+            });
         }
     }
 
