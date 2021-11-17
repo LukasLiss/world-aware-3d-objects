@@ -9,6 +9,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
 import { WAO } from './wao.js';
 import * as Dracula from 'graphdracula';
+import { CubeReflectionMapping } from 'three';
 
 // global objects
 let camera, scene, renderer, control, mixer, clock;
@@ -32,6 +33,7 @@ function getTDHeight(){
 function init(){
     // Init scene
 	scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xCEF3EC);
 
 	// Init Perspective Camera
 	camera = new THREE.PerspectiveCamera(
@@ -78,13 +80,32 @@ function init(){
 	camera.position.z = 5;
 
   //add ambient light
-  const ambientLight = new THREE.AmbientLight(0x999999);
+  const ambientLight = new THREE.AmbientLight(0xffffff);
   scene.add(ambientLight);
 
   // add point light
-  const light = new THREE.PointLight( 0xffffff, 0.5, 0 );
-  light.position.set( 20, 20, 20 );
+  const light = new THREE.PointLight( 0xffffff, 1, 0 );
+  light.position.set( 5, 5, 5 );
   scene.add( light );
+
+  //add ground
+  const geoGround = new THREE.BoxGeometry(5, 0.1, 5);
+  const matGround = new THREE.MeshBasicMaterial( { color: 0x586F7C } );
+  const ground = new THREE.Mesh( geoGround, matGround );
+  ground.position.y = -0.05;
+  scene.add( ground );
+
+  //add shadow plane
+  var planeGeometry = new THREE.PlaneGeometry( 200, 200 );
+  planeGeometry.rotateX( - Math.PI / 2 );
+
+  var planeMaterial = new THREE.ShadowMaterial();
+  planeMaterial.opacity = 0.2;
+
+  var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+  plane.position.y = -200;
+  plane.receiveShadow = true;
+  scene.add( plane );
 
   //orbit control activation
   control = new OrbitControls(camera, renderer.domElement);
