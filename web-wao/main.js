@@ -141,6 +141,10 @@ window.onload = function(){
     document.getElementById("fireEventBtn").onclick = () => {
       fireEventBtnClick();
     }
+    document.getElementById("fileSelectButton").onclick = () => {
+      loadNewFile();
+    }
+
 
     init();
     drawCoordinateSystem();
@@ -292,6 +296,16 @@ function waoCahnged(updates){
 
   //drawWAOGraphUpdate(updates);
   drawWAOGraph(myWAO);
+}
+
+function loadNewFile(){
+  let path = document.getElementById("fileSelect").files[0];
+  console.log(path);
+
+  init();
+  drawCoordinateSystem();
+
+  loadGLTF(path);
 }
 
 ////////////////////////////////////////////////////////////
