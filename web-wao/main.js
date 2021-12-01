@@ -7,6 +7,7 @@ import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { WAO } from './wao.js';
 import * as Dracula from 'graphdracula';
 import { CubeReflectionMapping } from 'three';
@@ -67,6 +68,9 @@ function init(){
 	// Init renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 
+  //allow XR
+  renderer.xr.enabled = true;
+
 	// Set size
 	renderer.setSize(getTDWidth(), getTDHeight());
 
@@ -75,6 +79,9 @@ function init(){
 
 	// Render to canvas element
 	document.getElementById("threeDView").appendChild(renderer.domElement);
+
+  //Add VR Button
+  document.body.appendChild( VRButton.createButton( renderer ) );
 
 	// Position camera
 	camera.position.z = 5;
@@ -109,6 +116,19 @@ function init(){
 
   //orbit control activation
   control = new OrbitControls(camera, renderer.domElement);
+
+  //start render
+  renderer.setAnimationLoop( function () {
+
+    renderer.render( scene, camera );
+
+    if(mixer){
+      mixer.update(clock.getDelta());
+    }
+    control.update();
+    renderer.render(scene, camera);
+    
+  } );
 }
 
 function onWindowResize(){
@@ -120,15 +140,15 @@ function onWindowResize(){
 	renderer.setSize(getTDWidth(), getTDHeight());
 }
 
-function animate() {
-  requestAnimationFrame(animate);
+// function animate() {
+//   requestAnimationFrame(animate);
 
-  if(mixer){
-    mixer.update(clock.getDelta());
-  }
-  control.update();
-	renderer.render(scene, camera);
-};
+//   if(mixer){
+//     mixer.update(clock.getDelta());
+//   }
+//   control.update();
+// 	renderer.render(scene, camera);
+// };
 
 window.onload = function(){
     window.addEventListener('resize', onWindowResize, false);
@@ -144,6 +164,9 @@ window.onload = function(){
     document.getElementById("fileSelectButton").onclick = () => {
       loadNewFile();
     }
+    document.getElementById("fullscreenButton").onclick = () => {
+      enterFullScreen();
+    }
 
 
     init();
@@ -152,7 +175,7 @@ window.onload = function(){
     loadGLTF("/resources/Wolf.glb");
     //loadGLTF("/resources/BrainStem.glb");
     
-    animate();
+    //animate();
     console.log("Animation started");
 }
 ////////////////////////////////////////////////////////////
@@ -306,6 +329,14 @@ function loadNewFile(){
   drawCoordinateSystem();
 
   loadGLTF(path);
+}
+
+function enterFullScreen(){
+  console.log("Fullscreen");
+  $("#sidebar").hide();
+  //document.getElementById("sidebar").setAttribute("display","none");
+  onWindowResize();
+
 }
 
 ////////////////////////////////////////////////////////////

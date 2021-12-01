@@ -26,7 +26,7 @@ canvas {
 #threeDView {
   
   background-color: red;
-  width: 60%;
+  flex-grow: 7;
   height: 100%;
 }
 
